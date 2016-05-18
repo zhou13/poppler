@@ -179,6 +179,9 @@ public:
   Dict *getResourceDict();
   Dict *getResourceDictCopy(XRef *xrefA);
 
+  // Whether the content in this page supports subpixel rendering (lcdfilter)
+  GBool supportSubpixelRendering(OutputDev *out);
+
   // Get annotations array.
   Object *getAnnots(Object *obj, XRef *xrefA = NULL) { return annotsObj.fetch((xrefA == NULL) ? xref : xrefA, obj); }
   // Add a new annotation to the page
