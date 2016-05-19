@@ -1402,6 +1402,7 @@ void CairoOutputDev::drawChar(GfxState *state, double x, double y,
 void CairoOutputDev::endString(GfxState *state)
 {
   int render;
+  GfxFontType fontType;
 
   if (!currentFont)
     return;
@@ -1417,6 +1418,18 @@ void CairoOutputDev::endString(GfxState *state)
   render = state->getRender();
   if (render == 3 || glyphCount == 0 || !text_matrix_valid) {
     goto finish;
+  }
+
+  fontType = state->getFont()->getType();
+  // Do not enable subpixel rendering for type3 font
+  // For some reason it does not work
+  if (fontType == fontType3) {
+      cairo_save(cairo);
+      cairo_font_options_t *fo;
+      fo = cairo_font_options_create ();
+      cairo_get_font_options (cairo, fo);
+      cairo_font_options_set_antialias (fo, CAIRO_ANTIALIAS_DEFAULT);
+      cairo_set_font_options (cairo, fo);
   }
 
   if (!(render & 1)) {
@@ -1469,6 +1482,10 @@ void CairoOutputDev::endString(GfxState *state)
   }
 
 finish:
+  // pair with the previous cairo_save to disable subpixel rendering for type3 fonts
+  if (fontType == fontType3) {
+      cairo_restore(cairo);
+  }
   gfree (glyphs);
   glyphs = NULL;
   if (use_show_text_glyphs) {
